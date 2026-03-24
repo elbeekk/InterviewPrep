@@ -25,7 +25,7 @@ struct LessonsListView: View {
             return allTopics
         }
         return allTopics.filter { topic in
-            let topicLessons = contentService.lessons(for: topic.track, topic: topic.id.replacingOccurrences(of: "\(topic.track.rawValue)_", with: ""))
+            let topicLessons = contentService.lessons(for: topic.track, topic: topic.rawName)
             let matchesTopic = topic.name.localizedCaseInsensitiveContains(searchText)
             let matchesLesson = topicLessons.contains {
                 $0.title.localizedCaseInsensitiveContains(searchText)
@@ -41,8 +41,7 @@ struct LessonsListView: View {
     }
 
     private func lessonsForTopic(_ topic: Topic) -> [Lesson] {
-        let rawTopic = topic.id.replacingOccurrences(of: "\(topic.track.rawValue)_", with: "")
-        let lessons = contentService.lessons(for: topic.track, topic: rawTopic)
+        let lessons = contentService.lessons(for: topic.track, topic: topic.rawName)
         if searchText.isEmpty {
             return lessons
         }

@@ -15,19 +15,27 @@ struct HomeView: View {
     }
 
     private var visibleTopics: [Topic] {
-        availableTracks
-            .flatMap { contentService.topics(for: $0) }
-            .sorted { lhs, rhs in
-                if trackSortOrder(lhs.track) == trackSortOrder(rhs.track) {
-                    return lhs.name < rhs.name
-                }
-                return trackSortOrder(lhs.track) < trackSortOrder(rhs.track)
-            }
+        availableTracks.flatMap { contentService.topics(for: $0) }
     }
 
     private var duplicateTopicNames: Set<String> {
         let names = visibleTopics.map(\.name)
         return Set(names.filter { candidate in names.filter { $0 == candidate }.count > 1 })
+    }
+
+    private var recommendedTopic: Topic? {
+        let topicsWithLessons = visibleTopics.filter {
+            !contentService.lessons(for: $0.track, topic: $0.rawName).isEmpty
+        }
+
+        return topicsWithLessons.first {
+            progressService.topicProgress(topic: $0.rawName, track: $0.track, contentService: contentService) < 1
+        } ?? topicsWithLessons.first
+    }
+
+    private var recommendedLesson: Lesson? {
+        guard let topic = recommendedTopic else { return nil }
+        return nextLesson(for: topic)
     }
 
     var body: some View {
@@ -43,6 +51,14 @@ struct HomeView: View {
                     DailyChallengeRow(exercise: exercise)
                 } header: {
                     Text("Daily Challenge")
+                }
+            }
+
+            if let topic = recommendedTopic, let lesson = recommendedLesson {
+                Section {
+                    startHereRow(topic: topic, lesson: lesson)
+                } header: {
+                    Text("Start Here")
                 }
             }
 
@@ -131,18 +147,73 @@ struct HomeView: View {
                 }
             } else {
                 ForEach(visibleTopics.prefix(6)) { topic in
-                    TopicRow(
-                        topic: topic,
-                        progress: progressService.topicProgress(
-                            topic: rawTopicName(for: topic),
-                            track: topic.track,
-                            contentService: contentService
-                        ),
-                        showsTrackBadge: duplicateTopicNames.contains(topic.name)
-                    )
+                    if let lesson = nextLesson(for: topic) {
+                        NavigationLink {
+                            LessonDetailView(lesson: lesson)
+                        } label: {
+                            topicRow(topic)
+                        }
+                    } else {
+                        topicRow(topic)
+                    }
                 }
             }
         }
+    }
+
+    private func startHereRow(topic: Topic, lesson: Lesson) -> some View {
+        let progress = progressService.topicProgress(
+            topic: topic.rawName,
+            track: topic.track,
+            contentService: contentService
+        )
+
+        return NavigationLink {
+            LessonDetailView(lesson: lesson)
+        } label: {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    Image(systemName: topic.icon)
+                        .foregroundStyle(AppTheme.accent)
+
+                    Text(topic.name)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+
+                    if topic.track == .general && selectedTrack != .general {
+                        TrackBadge(track: topic.track)
+                    }
+
+                    Spacer()
+
+                    Text(progress == 0 ? "New" : "\(Int(progress * 100))%")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Text(lesson.compactListTitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+
+                Text("Most useful interview foundations first.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.vertical, 2)
+        }
+    }
+
+    private func topicRow(_ topic: Topic) -> some View {
+        TopicRow(
+            topic: topic,
+            progress: progressService.topicProgress(
+                topic: topic.rawName,
+                track: topic.track,
+                contentService: contentService
+            ),
+            showsTrackBadge: duplicateTopicNames.contains(topic.name)
+        )
     }
 
     private var trackPicker: some View {
@@ -166,24 +237,14 @@ struct HomeView: View {
         .accessibilityValue(selectedTrack.displayName)
     }
 
-    private func rawTopicName(for topic: Topic) -> String {
-        topic.id.replacingOccurrences(of: "\(topic.track.rawValue)_", with: "")
+    private func nextLesson(for topic: Topic) -> Lesson? {
+        let lessons = contentService.lessons(for: topic.track, topic: topic.rawName)
+        return lessons.first { !progressService.isLessonCompleted($0.id) } ?? lessons.first
     }
 
     private func randomDailyChallenge() -> Exercise? {
         let exercises = availableTracks.flatMap { contentService.exercises(for: $0) }
         return exercises.randomElement()
-    }
-
-    private func trackSortOrder(_ track: Track) -> Int {
-        switch track {
-        case selectedTrack:
-            return 0
-        case .general:
-            return 1
-        default:
-            return 2
-        }
     }
 }
 

@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct SettingsView: View {
+    private let sourceCodeURL = URL(string: "https://github.com/elbeekk/InterviewPrep.git")!
+    private let issuesURL = URL(string: "https://github.com/elbeekk/InterviewPrep/issues")!
+
     @Environment(ProgressService.self) private var progressService
     @AppStorage("selectedTrack") private var selectedTrack: Track = .swift
     @AppStorage("colorScheme") private var selectedColorScheme: String = "system"
@@ -101,11 +104,11 @@ struct SettingsView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                Link(destination: URL(string: "https://github.com")!) {
+                Link(destination: sourceCodeURL) {
                     Label("Source Code", systemImage: "chevron.left.forwardslash.chevron.right")
                 }
 
-                Link(destination: URL(string: "https://github.com")!) {
+                Link(destination: issuesURL) {
                     Label("Report an Issue", systemImage: "ladybug")
                 }
             } header: {

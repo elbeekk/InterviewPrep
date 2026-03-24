@@ -166,6 +166,12 @@ struct Topic: Identifiable {
     let questionCount: Int
 }
 
+extension Topic {
+    var rawName: String {
+        id.replacingOccurrences(of: "\(track.rawValue)_", with: "")
+    }
+}
+
 struct ContentBundle: Codable {
     let lessons: [Lesson]
     let exercises: [Exercise]

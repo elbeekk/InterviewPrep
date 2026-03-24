@@ -19,14 +19,7 @@ struct ProfileView: View {
     }
 
     private var visibleTopics: [Topic] {
-        availableTracks
-            .flatMap { contentService.topics(for: $0) }
-            .sorted { lhs, rhs in
-                if trackSortOrder(lhs.track) == trackSortOrder(rhs.track) {
-                    return lhs.name < rhs.name
-                }
-                return trackSortOrder(lhs.track) < trackSortOrder(rhs.track)
-            }
+        availableTracks.flatMap { contentService.topics(for: $0) }
     }
 
     private var duplicateTopicNames: Set<String> {
@@ -88,7 +81,7 @@ struct ProfileView: View {
                     } else {
                         ForEach(visibleTopics) { topic in
                             let progress = progressService.topicProgress(
-                                topic: rawTopicName(for: topic),
+                                topic: topic.rawName,
                                 track: topic.track,
                                 contentService: contentService
                             )
@@ -130,20 +123,6 @@ struct ProfileView: View {
         }
     }
 
-    private func rawTopicName(for topic: Topic) -> String {
-        topic.id.replacingOccurrences(of: "\(topic.track.rawValue)_", with: "")
-    }
-
-    private func trackSortOrder(_ track: Track) -> Int {
-        switch track {
-        case selectedTrack:
-            return 0
-        case .general:
-            return 1
-        default:
-            return 2
-        }
-    }
 }
 
 private struct StatRow: View {

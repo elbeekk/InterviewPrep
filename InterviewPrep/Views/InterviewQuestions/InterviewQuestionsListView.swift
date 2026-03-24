@@ -12,6 +12,7 @@ struct InterviewQuestionsListView: View {
     private struct QuestionSection: Identifiable {
         let id: String
         let title: String
+        let rawTopic: String
         let track: Track
         let questions: [InterviewQuestion]
     }
@@ -31,7 +32,13 @@ struct InterviewQuestionsListView: View {
             if lhs.topic == rhs.topic {
                 return lhs.orderIndex < rhs.orderIndex
             }
-            return lhs.topic < rhs.topic
+            return contentService.compareTopics(
+                lhsTopic: lhs.topic,
+                lhsTrack: lhs.track,
+                rhsTopic: rhs.topic,
+                rhsTrack: rhs.track,
+                selectedTrack: selectedTrack
+            )
         }
 
         if let difficulty = selectedDifficulty {
@@ -60,15 +67,19 @@ struct InterviewQuestionsListView: View {
             return QuestionSection(
                 id: "\(first.track.rawValue)|\(first.topic)",
                 title: first.topic.replacingOccurrences(of: "_", with: " ").capitalized,
+                rawTopic: first.topic,
                 track: first.track,
                 questions: questions.sorted { $0.orderIndex < $1.orderIndex }
             )
         }
         .sorted { lhs, rhs in
-            if trackSortOrder(lhs.track) == trackSortOrder(rhs.track) {
-                return lhs.title < rhs.title
-            }
-            return trackSortOrder(lhs.track) < trackSortOrder(rhs.track)
+            contentService.compareTopics(
+                lhsTopic: lhs.rawTopic,
+                lhsTrack: lhs.track,
+                rhsTopic: rhs.rawTopic,
+                rhsTrack: rhs.track,
+                selectedTrack: selectedTrack
+            )
         }
     }
 
@@ -206,16 +217,6 @@ struct InterviewQuestionsListView: View {
         .accessibilityLabel("Filter interview questions")
     }
 
-    private func trackSortOrder(_ track: Track) -> Int {
-        switch track {
-        case selectedTrack:
-            return 0
-        case .general:
-            return 1
-        default:
-            return 2
-        }
-    }
 }
 
 private struct QuestionRow: View {

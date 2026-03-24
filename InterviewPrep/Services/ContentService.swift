@@ -55,19 +55,28 @@ final class ContentService {
         let trackExercises = exercises.filter { $0.track == track }
         let trackQuestions = interviewQuestions.filter { $0.track == track }
 
-        let topicNames = Set(trackLessons.map(\.topic) + trackExercises.map(\.topic) + trackQuestions.map(\.topic))
+        let topicNames = Array(Set(trackLessons.map(\.topic) + trackExercises.map(\.topic) + trackQuestions.map(\.topic)))
+            .sorted { lhs, rhs in
+                compareTopics(
+                    lhsTopic: lhs,
+                    lhsTrack: track,
+                    rhsTopic: rhs,
+                    rhsTrack: track,
+                    selectedTrack: track
+                )
+            }
 
         return topicNames.map { topicName in
             Topic(
                 id: "\(track.rawValue)_\(topicName)",
-                name: topicName.replacingOccurrences(of: "_", with: " ").capitalized,
+                name: displayName(for: topicName),
                 icon: iconForTopic(topicName),
                 track: track,
                 lessonCount: trackLessons.filter { $0.topic == topicName }.count,
                 exerciseCount: trackExercises.filter { $0.topic == topicName }.count,
                 questionCount: trackQuestions.filter { $0.topic == topicName }.count
             )
-        }.sorted { $0.name < $1.name }
+        }
     }
 
     func randomExercise(for track: Track) -> Exercise? {
@@ -78,6 +87,30 @@ final class ContentService {
     func randomQuestion(for track: Track) -> InterviewQuestion? {
         let trackQuestions = interviewQuestions.filter { $0.track == track }
         return trackQuestions.randomElement()
+    }
+
+    func compareTopics(
+        lhsTopic: String,
+        lhsTrack: Track,
+        rhsTopic: String,
+        rhsTrack: Track,
+        selectedTrack: Track
+    ) -> Bool {
+        let lhsTrackRank = trackRank(lhsTrack, selectedTrack: selectedTrack)
+        let rhsTrackRank = trackRank(rhsTrack, selectedTrack: selectedTrack)
+
+        if lhsTrackRank != rhsTrackRank {
+            return lhsTrackRank < rhsTrackRank
+        }
+
+        let lhsTopicRank = topicRank(for: lhsTopic, track: lhsTrack)
+        let rhsTopicRank = topicRank(for: rhsTopic, track: rhsTrack)
+
+        if lhsTopicRank != rhsTopicRank {
+            return lhsTopicRank < rhsTopicRank
+        }
+
+        return displayName(for: lhsTopic).localizedStandardCompare(displayName(for: rhsTopic)) == .orderedAscending
     }
 
     private func iconForTopic(_ topic: String) -> String {
@@ -141,4 +174,142 @@ final class ContentService {
         self.interviewQuestions = Self.sampleInterviewQuestions
         self.isLoaded = true
     }
+
+    private func displayName(for topic: String) -> String {
+        topic.replacingOccurrences(of: "_", with: " ").capitalized
+    }
+
+    private func trackRank(_ track: Track, selectedTrack: Track) -> Int {
+        switch track {
+        case selectedTrack:
+            return 0
+        case .general:
+            return 1
+        default:
+            return 2
+        }
+    }
+
+    private func topicRank(for topic: String, track: Track) -> Int {
+        Self.topicPriorityByTrack[track]?[topic] ?? Self.unknownTopicRank
+    }
+
+    private static func priorityMap(for topics: [String]) -> [String: Int] {
+        Dictionary(uniqueKeysWithValues: topics.enumerated().map { ($0.element, $0.offset) })
+    }
+
+    private static let unknownTopicRank = 10_000
+
+    private static let topicPriorityByTrack: [Track: [String: Int]] = [
+        .flutter: priorityMap(for: [
+            "variables_constants_type_system",
+            "null_safety",
+            "functions",
+            "control_flow",
+            "collections",
+            "oop_in_dart",
+            "async_programming",
+            "error_handling",
+            "generics_type_system",
+            "widget_tree_element_tree_renderobject_tree",
+            "statelesswidget_vs_statefulwidget_lifecycle",
+            "buildcontext",
+            "layouts",
+            "responsive_design",
+            "forms_input",
+            "state_management",
+            "navigation",
+            "networking",
+            "local_storage",
+            "dependency_injection",
+            "architecture_patterns",
+            "testing",
+            "performance",
+            "theming",
+            "animations",
+            "keys",
+            "slivers",
+            "isolates_concurrency",
+            "firebase_integration",
+            "platform_channels",
+            "internationalization",
+            "accessibility",
+            "custom_painting",
+            "dart_3_features",
+            "flavors_environment_configuration",
+            "ci_cd",
+            "publishing",
+        ]),
+        .swift: priorityMap(for: [
+            "variables_constants_type_inference",
+            "optionals",
+            "functions_closures",
+            "control_flow",
+            "collections",
+            "oop",
+            "value_types_vs_reference_types",
+            "error_handling",
+            "generics_associated_types",
+            "concurrency",
+            "memory_management",
+            "property_wrappers",
+            "view_protocol_view_lifecycle",
+            "modifiers",
+            "layout_system",
+            "lists_grids",
+            "forms_user_input",
+            "state_management",
+            "observation_framework",
+            "data_flow_architecture",
+            "navigation",
+            "sheets_alerts_confirmations_popovers",
+            "gestures",
+            "animations_transitions",
+            "networking",
+            "combine",
+            "swiftdata",
+            "core_data",
+            "app_architecture",
+            "testing",
+            "performance",
+            "keychain_security",
+            "accessibility",
+            "localization",
+            "drawing",
+            "uikit_interop",
+            "widgetkit",
+            "push_notifications",
+            "app_intents_shortcuts",
+            "opaque_types_some_keyword",
+            "macros",
+            "swift_5_9_features",
+            "ci_cd",
+            "app_store",
+        ]),
+        .general: priorityMap(for: [
+            "oop_principles",
+            "solid_principles",
+            "clean_code",
+            "code_quality",
+            "design_patterns",
+            "data_structures",
+            "algorithms",
+            "networking_fundamentals",
+            "rest_api",
+            "authentication_authorization",
+            "databases",
+            "caching_strategies",
+            "security",
+            "system_design_basics",
+            "git",
+            "dependency_management",
+            "websocket",
+            "graphql",
+            "app_performance",
+            "accessibility",
+            "internationalization_localization",
+            "ci_cd_concepts",
+            "agile_scrum",
+        ]),
+    ]
 }
