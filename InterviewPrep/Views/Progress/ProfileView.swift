@@ -65,6 +65,25 @@ struct ProfileView: View {
                     .padding(.vertical, 8)
                 }
 
+                Section {
+                    NavigationLink {
+                        SettingsView()
+                    } label: {
+                        Label("Settings", systemImage: "gearshape")
+                    }
+
+                    NavigationLink {
+                        BookmarksView()
+                    } label: {
+                        HStack {
+                            Label("Bookmarks", systemImage: "bookmark")
+                            Spacer()
+                            Text("\(progressService.allBookmarks().count)")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+
                 Section("Statistics") {
                     StatRow(label: "Total XP", value: "\(progressService.totalXP)")
                     StatRow(label: "Streak", value: "\(progressService.currentStreak) days")
@@ -91,25 +110,6 @@ struct ProfileView: View {
                                 showsTrackBadge: duplicateTopicNames.contains(topic.name)
                             )
                         }
-                    }
-                }
-
-                Section {
-                    NavigationLink {
-                        BookmarksView()
-                    } label: {
-                        HStack {
-                            Label("Bookmarks", systemImage: "bookmark")
-                            Spacer()
-                            Text("\(progressService.allBookmarks().count)")
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-
-                    NavigationLink {
-                        SettingsView()
-                    } label: {
-                        Label("Settings", systemImage: "gearshape")
                     }
                 }
             }
