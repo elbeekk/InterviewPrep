@@ -27,6 +27,31 @@ struct FillBlankExerciseView: View {
         filledBlanks.allSatisfy { $0 != nil }
     }
 
+    /// Break the entire template into an array of segments: either a word or a blank index.
+    private var templateSegments: [TemplateSegment] {
+        var segments: [TemplateSegment] = []
+        var blankIndex = 0
+        let fullText = codeTemplate
+
+        // Split by the blank placeholder "___"
+        let parts = fullText.components(separatedBy: "___")
+        for (partIndex, part) in parts.enumerated() {
+            // Split the text part into individual words so they can wrap
+            let words = part.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }
+            for word in words {
+                segments.append(.word(word))
+            }
+
+            // Add a blank between parts (not after the last part)
+            if partIndex < parts.count - 1 {
+                segments.append(.blank(blankIndex))
+                blankIndex += 1
+            }
+        }
+
+        return segments
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             if let question = exercise.question {
@@ -36,7 +61,7 @@ struct FillBlankExerciseView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            codeTemplateView
+            sentenceTemplateView
             wordBankView
 
             if allBlanksFilled && !isAnswered {
@@ -48,128 +73,87 @@ struct FillBlankExerciseView: View {
         }
     }
 
-    // MARK: - Code Template View
+    // MARK: - Sentence Template (Duolingo-style flowing text with inline blanks)
 
-    private var codeTemplateView: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            let lines = codeTemplate.components(separatedBy: "\n")
-
-            ForEach(Array(lines.enumerated()), id: \.offset) { lineIndex, line in
-                buildCodeLine(line, lineNumber: lineIndex + 1)
-            }
-        }
-        .padding(AppTheme.padding)
-        .glassEffect(.regular, in: .rect(cornerRadius: AppTheme.smallCornerRadius))
-    }
-
-    @ViewBuilder
-    private func buildCodeLine(_ line: String, lineNumber: Int) -> some View {
-        let parts = line.components(separatedBy: "___")
-        let hasBlanks = parts.count > 1
-
-        if hasBlanks {
-            // Use wrapping FlowLayout for lines with blanks so they don't overflow
-            FlowLayout(spacing: 4) {
-                Text("\(lineNumber) ")
-                    .font(AppTheme.codeFontSmall)
-                    .foregroundStyle(.tertiary)
-
-                ForEach(Array(parts.enumerated()), id: \.offset) { partIndex, part in
-                    if !part.isEmpty {
-                        Text(part)
-                            .font(AppTheme.codeFont)
-                            .foregroundStyle(.primary)
-                    }
-
-                    if partIndex < parts.count - 1 {
-                        let blankIndex = blankIndexFor(line: line, blankPosition: partIndex)
-                        if let blankIndex, blankIndex < filledBlanks.count {
-                            blankSlot(at: blankIndex)
-                        }
+    private var sentenceTemplateView: some View {
+        FlowLayout(spacing: 6) {
+            ForEach(Array(templateSegments.enumerated()), id: \.offset) { _, segment in
+                switch segment {
+                case .word(let text):
+                    Text(text)
+                        .font(.body)
+                        .foregroundStyle(.primary)
+                case .blank(let index):
+                    if index < filledBlanks.count {
+                        blankChip(at: index)
                     }
                 }
             }
-        } else {
-            // Plain code line — single HStack, no overflow risk
-            HStack(alignment: .center, spacing: 0) {
-                Text("\(lineNumber)")
-                    .font(AppTheme.codeFontSmall)
-                    .foregroundStyle(.tertiary)
-                    .frame(minWidth: 24, alignment: .trailing)
-                    .padding(.trailing, 8)
-
-                Text(line)
-                    .font(AppTheme.codeFont)
-                    .foregroundStyle(.primary)
-            }
         }
+        .padding(AppTheme.padding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glassEffect(.regular, in: .rect(cornerRadius: AppTheme.cornerRadius))
     }
 
-    private func blankIndexFor(line: String, blankPosition: Int) -> Int? {
-        let lines = codeTemplate.components(separatedBy: "\n")
-        var blankCount = 0
-        for l in lines {
-            let blanksInLine = l.components(separatedBy: "___").count - 1
-            if l == line {
-                let index = blankCount + blankPosition
-                return index < blanks.count ? index : nil
-            }
-            blankCount += blanksInLine
-        }
-        return nil
-    }
+    // MARK: - Blank Chip
 
-    @ViewBuilder
-    private func blankSlot(at index: Int) -> some View {
+    private func blankChip(at index: Int) -> some View {
         let filled = filledBlanks[index]
         let hasResult = index < blankResults.count
 
-        Button {
+        return Button {
             guard !isAnswered else { return }
             if filled != nil {
                 removeBlank(at: index)
             }
         } label: {
-            Text(filled ?? "___")
-                .font(AppTheme.codeFont)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 2)
+            Text(filled ?? "          ")
+                .font(.body)
+                .fontWeight(filled != nil ? .medium : .regular)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
                 .background(
-                    RoundedRectangle(cornerRadius: 6)
+                    RoundedRectangle(cornerRadius: 8)
                         .fill(blankBackground(filled: filled, result: hasResult ? blankResults[index] : nil))
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 6)
+                    RoundedRectangle(cornerRadius: 8)
                         .stroke(
                             blankBorder(filled: filled, result: hasResult ? blankResults[index] : nil),
-                            style: filled == nil ? StrokeStyle(lineWidth: 1, dash: [4]) : StrokeStyle(lineWidth: 1)
+                            lineWidth: filled != nil ? 1.5 : 1
                         )
                 )
-                .foregroundStyle(filled != nil ? .primary : .tertiary)
+                .foregroundStyle(filled != nil ? .primary : .quaternary)
         }
         .buttonStyle(.plain)
         .disabled(isAnswered)
     }
 
     private func blankBackground(filled: String?, result: Bool?) -> Color {
-        guard let result else {
-            return filled != nil ? AppTheme.accent.opacity(0.06) : Color.clear
+        if let result {
+            return result ? AppTheme.correct.opacity(0.1) : AppTheme.incorrect.opacity(0.1)
         }
-        return result ? AppTheme.correct.opacity(0.08) : AppTheme.incorrect.opacity(0.08)
+        if filled != nil {
+            return AppTheme.accent.opacity(0.08)
+        }
+        return Color(.systemGray6)
     }
 
     private func blankBorder(filled: String?, result: Bool?) -> Color {
-        guard let result else {
-            return filled != nil ? AppTheme.accent.opacity(0.3) : Color(.separator).opacity(0.3)
+        if let result {
+            return result ? AppTheme.correct.opacity(0.5) : AppTheme.incorrect.opacity(0.5)
         }
-        return result ? AppTheme.correct.opacity(0.4) : AppTheme.incorrect.opacity(0.4)
+        if filled != nil {
+            return AppTheme.accent.opacity(0.4)
+        }
+        return Color(.separator).opacity(0.4)
     }
 
     // MARK: - Word Bank
 
     private var wordBankView: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Word Bank")
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Tap to fill in the blanks")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -183,17 +167,15 @@ struct FillBlankExerciseView: View {
                     } label: {
                         Text(word)
                             .font(.subheadline)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(
-                                Capsule()
-                                    .fill(isUsed ? Color(.systemGray5) : AppTheme.secondaryBackground)
-                            )
-                            .overlay(
-                                Capsule()
-                                    .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
-                            )
+                            .fontWeight(.medium)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
                             .foregroundStyle(isUsed ? .tertiary : .primary)
+                            .background(
+                                isUsed ? AnyShape(Capsule()).fill(Color(.systemGray5)) : nil
+                            )
+                            .glassEffect(.regular, in: .capsule)
+                            .opacity(isUsed ? 0.4 : 1)
                     }
                     .buttonStyle(.plain)
                     .disabled(isUsed || isAnswered)
@@ -201,6 +183,7 @@ struct FillBlankExerciseView: View {
             }
         }
         .padding(AppTheme.padding)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .glassEffect(.regular, in: .rect(cornerRadius: AppTheme.cornerRadius))
     }
 
@@ -210,8 +193,8 @@ struct FillBlankExerciseView: View {
         Button {
             checkAnswers()
         } label: {
-            Text("Check")
-                .fontWeight(.medium)
+            Text("Check Answer")
+                .fontWeight(.semibold)
                 .frame(maxWidth: .infinity)
         }
         .buttonStyle(.borderedProminent)
@@ -244,7 +227,6 @@ struct FillBlankExerciseView: View {
         }) {
             withAnimation(.easeInOut(duration: 0.2)) {
                 usedWordIndices.remove(matchingUsedIndex)
-                _ = ()
             }
         }
 
@@ -276,6 +258,13 @@ struct FillBlankExerciseView: View {
 
         onAnswer(allCorrect)
     }
+}
+
+// MARK: - Template Segment
+
+private enum TemplateSegment {
+    case word(String)
+    case blank(Int)
 }
 
 // FlowLayout is defined in LessonDetailView.swift
