@@ -85,6 +85,8 @@ struct ReminderSetupView: View {
         .onAppear {
             reminderDate = Self.makeReminderDate(hour: reminderHour, minute: reminderMinute)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemBackground))
         .alert(
             "Reminder Not Enabled",
             isPresented: Binding(
