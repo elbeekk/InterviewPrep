@@ -110,6 +110,8 @@ struct FillBlankExerciseView: View {
             Text(filled ?? "          ")
                 .font(.body)
                 .fontWeight(filled != nil ? .medium : .regular)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(
@@ -168,13 +170,12 @@ struct FillBlankExerciseView: View {
                         Text(word)
                             .font(.subheadline)
                             .fontWeight(.medium)
+                            .multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: true)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 8)
                             .foregroundStyle(isUsed ? .tertiary : .primary)
-                            .background(
-                                isUsed ? AnyShape(Capsule()).fill(Color(.systemGray5)) : nil
-                            )
-                            .glassEffect(.regular, in: .capsule)
+                            .glassEffect(.regular, in: .rect(cornerRadius: 10))
                             .opacity(isUsed ? 0.4 : 1)
                     }
                     .buttonStyle(.plain)

@@ -374,8 +374,11 @@ struct FlowLayout: Layout {
 
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         let result = arrange(proposal: proposal, subviews: subviews)
+        let maxWidth = proposal.width ?? .infinity
         for (index, position) in result.positions.enumerated() {
-            subviews[index].place(at: CGPoint(x: bounds.minX + position.x, y: bounds.minY + position.y), proposal: .unspecified)
+            let remainingWidth = maxWidth - position.x
+            let childProposal = ProposedViewSize(width: remainingWidth, height: nil)
+            subviews[index].place(at: CGPoint(x: bounds.minX + position.x, y: bounds.minY + position.y), proposal: childProposal)
         }
     }
 
@@ -388,15 +391,28 @@ struct FlowLayout: Layout {
         var maxX: CGFloat = 0
 
         for subview in subviews {
-            let size = subview.sizeThatFits(.unspecified)
+            // Measure with constrained width so long text can wrap
+            let proposedWidth = maxWidth - x
+            let size = subview.sizeThatFits(ProposedViewSize(width: proposedWidth, height: nil))
+
+            // If it doesn't fit on the current line, start a new row
             if x + size.width > maxWidth && x > 0 {
                 x = 0
                 y += rowHeight + spacing
                 rowHeight = 0
             }
+
+            // Re-measure on the new line if we wrapped
+            let finalSize: CGSize
+            if x == 0 && positions.count > 0 {
+                finalSize = subview.sizeThatFits(ProposedViewSize(width: maxWidth, height: nil))
+            } else {
+                finalSize = size
+            }
+
             positions.append(CGPoint(x: x, y: y))
-            rowHeight = max(rowHeight, size.height)
-            x += size.width + spacing
+            rowHeight = max(rowHeight, finalSize.height)
+            x += finalSize.width + spacing
             maxX = max(maxX, x)
         }
 
