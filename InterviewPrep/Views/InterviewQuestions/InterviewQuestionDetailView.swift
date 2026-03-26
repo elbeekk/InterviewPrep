@@ -43,7 +43,6 @@ struct InterviewQuestionDetailView: View {
             .padding(.horizontal, AppTheme.padding)
             .padding(.top, AppTheme.spacing)
         }
-        .background(AppTheme.groupedBackground)
         .navigationTitle("Question")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -144,8 +143,7 @@ struct InterviewQuestionDetailView: View {
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .background(AppTheme.secondaryBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadius))
+        .glassEffect(.regular, in: .rect(cornerRadius: AppTheme.cornerRadius))
     }
 
     private func bulletPoint(_ text: String) -> some View {
@@ -179,8 +177,7 @@ struct InterviewQuestionDetailView: View {
                     }
                     .padding(AppTheme.padding)
                     .foregroundStyle(AppTheme.accent)
-                    .background(AppTheme.secondaryBackground)
-                    .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadius))
+                    .glassEffect(.regular, in: .rect(cornerRadius: AppTheme.cornerRadius))
                 }
                 .buttonStyle(.plain)
             } else {
@@ -210,8 +207,7 @@ struct InterviewQuestionDetailView: View {
                         .foregroundStyle(.primary)
                 }
                 .padding(AppTheme.padding)
-                .background(AppTheme.secondaryBackground)
-                .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadius))
+                .glassEffect(.regular, in: .rect(cornerRadius: AppTheme.cornerRadius))
                 .transition(.opacity)
             }
         }
@@ -256,8 +252,7 @@ struct InterviewQuestionDetailView: View {
             }
         }
         .padding(AppTheme.padding)
-        .background(AppTheme.secondaryBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadius))
+        .glassEffect(.regular, in: .rect(cornerRadius: AppTheme.cornerRadius))
     }
 
     // MARK: - Common Mistakes
@@ -284,8 +279,7 @@ struct InterviewQuestionDetailView: View {
             }
         }
         .padding(AppTheme.padding)
-        .background(AppTheme.secondaryBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadius))
+        .glassEffect(.regular, in: .rect(cornerRadius: AppTheme.cornerRadius))
     }
 }
 

@@ -63,10 +63,7 @@ struct FillBlankExerciseView: View {
                 .padding(AppTheme.padding)
             }
         }
-        .background(
-            RoundedRectangle(cornerRadius: AppTheme.smallCornerRadius)
-                .fill(AppTheme.codeBackground)
-        )
+        .glassEffect(.regular, in: .rect(cornerRadius: AppTheme.smallCornerRadius))
     }
 
     @ViewBuilder
@@ -190,10 +187,7 @@ struct FillBlankExerciseView: View {
             }
         }
         .padding(AppTheme.padding)
-        .background(
-            RoundedRectangle(cornerRadius: AppTheme.cornerRadius)
-                .fill(AppTheme.secondaryBackground)
-        )
+        .glassEffect(.regular, in: .rect(cornerRadius: AppTheme.cornerRadius))
     }
 
     // MARK: - Check Button

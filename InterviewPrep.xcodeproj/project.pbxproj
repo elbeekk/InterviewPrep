@@ -6,7 +6,44 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		0B52D113D9E55B59366416F5 /* StudySessionActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34B41E1168F6B0564FBD79EE /* StudySessionActivityAttributes.swift */; };
+		3CBBAA8F7711F1BE14B155EA /* InterviewPrepLiveActivity.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 0DC2A8BDBD7D5D2C3F7A099E /* InterviewPrepLiveActivity.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		78A15B92987469BA239F8CBA /* InterviewPrepLiveActivityBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 686A14F5C35616A071726475 /* InterviewPrepLiveActivityBundle.swift */; };
+		A726F5940652B07F21DB1CBE /* StudySessionActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34B41E1168F6B0564FBD79EE /* StudySessionActivityAttributes.swift */; };
+		B292CB19A07CFE2700AECE7C /* StudySessionLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = B782C34E8E7E9198BE0694A8 /* StudySessionLiveActivity.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		EF30336500B1111A2CCB9A93 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E3E688A62EEF9E77008DB7DA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 23324E4A5B6888AFDB837FAD;
+			remoteInfo = InterviewPrepLiveActivity;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		6074B575E76A5E56D54B83BE /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				3CBBAA8F7711F1BE14B155EA /* InterviewPrepLiveActivity.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		0DC2A8BDBD7D5D2C3F7A099E /* InterviewPrepLiveActivity.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = InterviewPrepLiveActivity.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		34B41E1168F6B0564FBD79EE /* StudySessionActivityAttributes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StudySessionActivityAttributes.swift; path = Shared/StudySessionActivityAttributes.swift; sourceTree = "<group>"; };
+		686A14F5C35616A071726475 /* InterviewPrepLiveActivityBundle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = InterviewPrepLiveActivityBundle.swift; path = InterviewPrepLiveActivity/InterviewPrepLiveActivityBundle.swift; sourceTree = "<group>"; };
+		8F82754409AF1B5922C75AF3 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = InterviewPrepLiveActivity/Info.plist; sourceTree = "<group>"; };
+		B782C34E8E7E9198BE0694A8 /* StudySessionLiveActivity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StudySessionLiveActivity.swift; path = InterviewPrepLiveActivity/StudySessionLiveActivity.swift; sourceTree = "<group>"; };
 		E3E688AE2EEF9E77008DB7DA /* InterviewPrep.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = InterviewPrep.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -19,6 +56,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		A27668F7D08EF757A2F720A3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E3E688AB2EEF9E77008DB7DA /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -29,11 +73,39 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		09610EB10F27E37356CF28AA /* InterviewPrepLiveActivity */ = {
+			isa = PBXGroup;
+			children = (
+				686A14F5C35616A071726475 /* InterviewPrepLiveActivityBundle.swift */,
+				B782C34E8E7E9198BE0694A8 /* StudySessionLiveActivity.swift */,
+				8F82754409AF1B5922C75AF3 /* Info.plist */,
+			);
+			name = InterviewPrepLiveActivity;
+			sourceTree = "<group>";
+		};
+		644C53DB9BDCB575B9A5856A /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+		BAA5724033E44FF153A73D24 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				34B41E1168F6B0564FBD79EE /* StudySessionActivityAttributes.swift */,
+			);
+			name = Shared;
+			sourceTree = "<group>";
+		};
 		E3E688A52EEF9E77008DB7DA = {
 			isa = PBXGroup;
 			children = (
 				E3E688B02EEF9E77008DB7DA /* InterviewPrep */,
 				E3E688AF2EEF9E77008DB7DA /* Products */,
+				F6756E85DBB5596980A2870C /* Frameworks */,
+				09610EB10F27E37356CF28AA /* InterviewPrepLiveActivity */,
+				BAA5724033E44FF153A73D24 /* Shared */,
 			);
 			sourceTree = "<group>";
 		};
@@ -41,13 +113,39 @@
 			isa = PBXGroup;
 			children = (
 				E3E688AE2EEF9E77008DB7DA /* InterviewPrep.app */,
+				0DC2A8BDBD7D5D2C3F7A099E /* InterviewPrepLiveActivity.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		F6756E85DBB5596980A2870C /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				644C53DB9BDCB575B9A5856A /* iOS */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		23324E4A5B6888AFDB837FAD /* InterviewPrepLiveActivity */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 310701B67022DE9AE8FF4997 /* Build configuration list for PBXNativeTarget "InterviewPrepLiveActivity" */;
+			buildPhases = (
+				17198AF0A56B4245E4EBDA5C /* Sources */,
+				A27668F7D08EF757A2F720A3 /* Frameworks */,
+				F4C7F7E4E48321C327A137AF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = InterviewPrepLiveActivity;
+			productName = InterviewPrepLiveActivity;
+			productReference = 0DC2A8BDBD7D5D2C3F7A099E /* InterviewPrepLiveActivity.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		E3E688AD2EEF9E77008DB7DA /* InterviewPrep */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = E3E688BB2EEF9E77008DB7DA /* Build configuration list for PBXNativeTarget "InterviewPrep" */;
@@ -55,17 +153,17 @@
 				E3E688AA2EEF9E77008DB7DA /* Sources */,
 				E3E688AB2EEF9E77008DB7DA /* Frameworks */,
 				E3E688AC2EEF9E77008DB7DA /* Resources */,
+				6074B575E76A5E56D54B83BE /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				DD85CED001632ABECE0895CC /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				E3E688B02EEF9E77008DB7DA /* InterviewPrep */,
 			);
 			name = InterviewPrep;
-			packageProductDependencies = (
-			);
 			productName = InterviewPrep;
 			productReference = E3E688AE2EEF9E77008DB7DA /* InterviewPrep.app */;
 			productType = "com.apple.product-type.application";
@@ -100,6 +198,7 @@
 			projectRoot = "";
 			targets = (
 				E3E688AD2EEF9E77008DB7DA /* InterviewPrep */,
+				23324E4A5B6888AFDB837FAD /* InterviewPrepLiveActivity */,
 			);
 		};
 /* End PBXProject section */
@@ -112,19 +211,107 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-/* End PBXResourcesBuildPhase section */
-
-/* Begin PBXSourcesBuildPhase section */
-		E3E688AA2EEF9E77008DB7DA /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
+		F4C7F7E4E48321C327A137AF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		17198AF0A56B4245E4EBDA5C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				78A15B92987469BA239F8CBA /* InterviewPrepLiveActivityBundle.swift in Sources */,
+				B292CB19A07CFE2700AECE7C /* StudySessionLiveActivity.swift in Sources */,
+				A726F5940652B07F21DB1CBE /* StudySessionActivityAttributes.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E3E688AA2EEF9E77008DB7DA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0B52D113D9E55B59366416F5 /* StudySessionActivityAttributes.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		DD85CED001632ABECE0895CC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = InterviewPrepLiveActivity;
+			target = 23324E4A5B6888AFDB837FAD /* InterviewPrepLiveActivity */;
+			targetProxy = EF30336500B1111A2CCB9A93 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		3933AAB931E12C90D61F68A4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 988N3YY62P;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = InterviewPrepLiveActivity/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.3;
+				PRODUCT_BUNDLE_IDENTIFIER = elbek.InterviewPrep.LiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		86D41E124CF7725C8EBB9ACA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 988N3YY62P;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = InterviewPrepLiveActivity/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.3;
+				PRODUCT_BUNDLE_IDENTIFIER = elbek.InterviewPrep.LiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
 		E3E688B92EEF9E77008DB7DA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -255,19 +442,14 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 988N3YY62P;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = InterviewOS;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = AppInfo.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = elbek.InterviewPrep;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -293,19 +475,14 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 988N3YY62P;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = InterviewOS;
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = AppInfo.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = elbek.InterviewPrep;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -325,6 +502,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		310701B67022DE9AE8FF4997 /* Build configuration list for PBXNativeTarget "InterviewPrepLiveActivity" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3933AAB931E12C90D61F68A4 /* Release */,
+				86D41E124CF7725C8EBB9ACA /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		E3E688A92EEF9E77008DB7DA /* Build configuration list for PBXProject "InterviewPrep" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

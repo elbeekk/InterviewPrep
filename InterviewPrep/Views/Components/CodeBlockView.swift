@@ -65,8 +65,7 @@ struct CodeBlockView: View {
             }
             .padding(8)
         }
-        .background(backgroundColor)
-        .clipShape(RoundedRectangle(cornerRadius: AppTheme.smallCornerRadius))
+        .glassEffect(.regular, in: .rect(cornerRadius: AppTheme.smallCornerRadius))
     }
 }
 

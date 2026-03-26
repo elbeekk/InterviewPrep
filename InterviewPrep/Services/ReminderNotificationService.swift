@@ -3,6 +3,7 @@ import UserNotifications
 
 enum ReminderNotificationService {
     private static let requestIdentifiers = (1...7).map { "daily-reminder-\($0)" }
+    private static let foregroundDelegate = ReminderForegroundNotificationDelegate()
     private static let reminderMessages = [
         "Quiet reps win interviews. Open InterviewOS and clear one focused lesson.",
         "Ten sharp minutes today beats cramming later. Run a quick prep round.",
@@ -13,13 +14,15 @@ enum ReminderNotificationService {
         "Your next offer is built in small sessions. Open InterviewOS for a quick round."
     ]
 
-    private static let foregroundDelegate = ReminderForegroundNotificationDelegate()
-
     static func configure() {
         UNUserNotificationCenter.current().delegate = foregroundDelegate
     }
 
-    static func enableDailyReminders(hour: Int, minute: Int) async throws -> Bool {
+    static func enableDailyReminders(
+        hour: Int,
+        minute: Int,
+        sound: ReminderSoundOption = .system
+    ) async throws -> Bool {
         let settings = await currentNotificationSettings()
 
         switch settings.authorizationStatus {
@@ -36,8 +39,16 @@ enum ReminderNotificationService {
             return false
         }
 
-        try await scheduleWeeklyReminders(hour: hour, minute: minute)
+        try await scheduleWeeklyReminders(
+            hour: hour,
+            minute: minute,
+            sound: sound
+        )
         return true
+    }
+
+    static func authorizationStatus() async -> UNAuthorizationStatus {
+        await currentNotificationSettings().authorizationStatus
     }
 
     static func disableDailyReminders() {
@@ -46,7 +57,11 @@ enum ReminderNotificationService {
         center.removeDeliveredNotifications(withIdentifiers: requestIdentifiers)
     }
 
-    private static func scheduleWeeklyReminders(hour: Int, minute: Int) async throws {
+    private static func scheduleWeeklyReminders(
+        hour: Int,
+        minute: Int,
+        sound: ReminderSoundOption
+    ) async throws {
         disableDailyReminders()
 
         for weekday in 1...7 {
@@ -60,7 +75,7 @@ enum ReminderNotificationService {
             let content = UNMutableNotificationContent()
             content.title = "InterviewOS"
             content.body = reminderMessages[weekday - 1]
-            content.sound = .default
+            content.sound = notificationSound(for: sound)
 
             let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
             let request = UNNotificationRequest(
@@ -102,6 +117,20 @@ enum ReminderNotificationService {
                     continuation.resume(returning: ())
                 }
             }
+        }
+    }
+
+    private static func notificationSound(for sound: ReminderSoundOption) -> UNNotificationSound? {
+        switch sound {
+        case .off:
+            return nil
+        case .system:
+            return .default
+        case .bloom, .pulse, .glass:
+            guard let fileName = sound.bundledFileName else {
+                return .default
+            }
+            return UNNotificationSound(named: UNNotificationSoundName(fileName))
         }
     }
 }

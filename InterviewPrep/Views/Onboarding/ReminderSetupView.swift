@@ -4,6 +4,7 @@ struct ReminderSetupView: View {
     @AppStorage("dailyReminderEnabled") private var dailyReminderEnabled = false
     @AppStorage("reminderHour") private var reminderHour = 9
     @AppStorage("reminderMinute") private var reminderMinute = 0
+    @AppStorage("reminderSoundOption") private var reminderSoundOptionRaw = ReminderSoundOption.system.rawValue
 
     @State private var reminderDate = Date()
     @State private var isSchedulingReminder = false
@@ -111,7 +112,8 @@ struct ReminderSetupView: View {
             do {
                 let scheduled = try await ReminderNotificationService.enableDailyReminders(
                     hour: reminderHour,
-                    minute: reminderMinute
+                    minute: reminderMinute,
+                    sound: ReminderSoundOption(rawValue: reminderSoundOptionRaw) ?? .system
                 )
 
                 isSchedulingReminder = false

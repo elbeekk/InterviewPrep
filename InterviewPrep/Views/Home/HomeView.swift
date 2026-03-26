@@ -3,6 +3,7 @@ import SwiftUI
 struct HomeView: View {
     @Environment(ContentService.self) private var contentService
     @Environment(ProgressService.self) private var progressService
+    @Environment(TrackSelectionStore.self) private var trackSelection
     @AppStorage("selectedTrack") private var selectedTrack: Track = .swift
 
     @State private var dailyChallenge: Exercise?
@@ -102,7 +103,7 @@ struct HomeView: View {
 
             Text("\(progressService.currentLevel.rawValue) level")
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(AppTheme.accent)
         }
         .padding(.horizontal, AppTheme.padding)
         .padding(.vertical, AppTheme.spacing)
@@ -188,7 +189,7 @@ struct HomeView: View {
 
                     Text(progress == 0 ? "New" : "\(Int(progress * 100))%")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(AppTheme.accent)
                 }
 
                 Text(lesson.compactListTitle)
@@ -220,7 +221,7 @@ struct HomeView: View {
         Menu {
             ForEach(Track.allCases) { track in
                 Button {
-                    selectedTrack = track
+                    trackSelection.switchTo(track)
                 } label: {
                     if selectedTrack == track {
                         Label(track.displayName, systemImage: "checkmark")
@@ -274,4 +275,5 @@ private struct StatItem: View {
         HomeView()
     }
     .environment(ContentService())
+    .environment(TrackSelectionStore())
 }

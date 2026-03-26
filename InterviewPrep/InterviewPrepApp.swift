@@ -23,6 +23,8 @@ struct InterviewOSApp: App {
     }()
 
     @State private var contentService = ContentService()
+    @State private var trackSelection = TrackSelectionStore()
+    @State private var lessonAudioPlayer = LessonAudioPlayerService()
 
     init() {
         ReminderNotificationService.configure()
@@ -32,9 +34,12 @@ struct InterviewOSApp: App {
         WindowGroup {
             RootView()
                 .environment(contentService)
+                .environment(trackSelection)
+                .environment(lessonAudioPlayer)
                 .task {
                     contentService.loadContent()
                 }
+                .tint(AppTheme.accent)
                 .preferredColorScheme(colorSchemeValue)
         }
         .modelContainer(sharedModelContainer)
@@ -74,5 +79,25 @@ struct RootView: View {
                 progressService = ProgressService(modelContext: modelContext)
             }
         }
+    }
+}
+
+@MainActor
+@Observable
+final class TrackSelectionStore {
+    private let defaults: UserDefaults
+    private let storageKey = "selectedTrack"
+
+    private(set) var selectedTrack: Track
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        self.selectedTrack = Track(rawValue: defaults.string(forKey: storageKey) ?? "") ?? .swift
+    }
+
+    func switchTo(_ track: Track) {
+        guard track != selectedTrack else { return }
+        selectedTrack = track
+        defaults.set(track.rawValue, forKey: storageKey)
     }
 }

@@ -12,6 +12,7 @@ struct LessonQuizView: View {
     @State private var hasAnswered = false
     @State private var correctCount = 0
     @State private var quizFinished = false
+    @State private var didCompleteLesson = false
 
     private var currentQuestion: QuizQuestion {
         questions[currentIndex]
@@ -25,16 +26,9 @@ struct LessonQuizView: View {
                 questionView
             }
         }
-        .background(AppTheme.groupedBackground)
         .navigationTitle("Quiz")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button("Close") {
-                    dismiss()
-                }
-            }
-
             if !quizFinished {
                 ToolbarItem(placement: .topBarTrailing) {
                     Text("\(currentIndex + 1) of \(questions.count)")
@@ -43,7 +37,14 @@ struct LessonQuizView: View {
                 }
             }
         }
-        .interactiveDismissDisabled(hasAnswered && !quizFinished)
+        .onAppear {
+            StudySessionActivityManager.shared.startLessonQuiz(lesson)
+        }
+        .onDisappear {
+            if !didCompleteLesson {
+                StudySessionActivityManager.shared.endLesson(lesson)
+            }
+        }
     }
 
     // MARK: - Question View
@@ -93,6 +94,10 @@ struct LessonQuizView: View {
             if index == currentQuestion.correctAnswer {
                 correctCount += 1
             }
+            StudySessionActivityManager.shared.updateLessonQuiz(
+                lesson,
+                answeredQuestions: currentIndex + 1
+            )
         } label: {
             HStack(spacing: AppTheme.spacing) {
                 Text(text)
@@ -147,8 +152,7 @@ struct LessonQuizView: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppTheme.secondaryBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppTheme.smallCornerRadius))
+        .glassEffect(.regular, in: .rect(cornerRadius: AppTheme.smallCornerRadius))
     }
 
     // MARK: - Next Button
@@ -192,7 +196,10 @@ struct LessonQuizView: View {
 
             VStack(spacing: AppTheme.spacing) {
                 Button {
-                    progressService.markLessonCompleted(lesson.id, quizScore: Int((Double(correctCount) / Double(questions.count)) * 100))
+                    let score = Int((Double(correctCount) / Double(questions.count)) * 100)
+                    didCompleteLesson = true
+                    StudySessionActivityManager.shared.completeLesson(lesson, score: score)
+                    progressService.markLessonCompleted(lesson.id, quizScore: score)
                     dismiss()
                 } label: {
                     Text("Complete Lesson")
@@ -203,6 +210,8 @@ struct LessonQuizView: View {
 
                 Button {
                     withAnimation {
+                        StudySessionActivityManager.shared.startLessonQuiz(lesson)
+                        didCompleteLesson = false
                         currentIndex = 0
                         selectedAnswer = nil
                         hasAnswered = false

@@ -2,10 +2,35 @@ import Foundation
 
 @Observable
 final class ContentService {
+    private struct TrackTopicKey: Hashable {
+        let track: Track
+        let topic: String
+    }
+
+    private struct TrackExerciseTypeKey: Hashable {
+        let track: Track
+        let type: ExerciseType
+    }
+
+    private struct TrackQuestionCategoryKey: Hashable {
+        let track: Track
+        let category: InterviewQuestionCategory
+    }
+
     private(set) var lessons: [Lesson] = []
     private(set) var exercises: [Exercise] = []
     private(set) var interviewQuestions: [InterviewQuestion] = []
     private(set) var isLoaded = false
+
+    private var lessonsByTrack: [Track: [Lesson]] = [:]
+    private var lessonsByTrackTopic: [TrackTopicKey: [Lesson]] = [:]
+    private var exercisesByTrack: [Track: [Exercise]] = [:]
+    private var exercisesByTrackTopic: [TrackTopicKey: [Exercise]] = [:]
+    private var exercisesByTrackType: [TrackExerciseTypeKey: [Exercise]] = [:]
+    private var questionsByTrack: [Track: [InterviewQuestion]] = [:]
+    private var questionsByTrackTopic: [TrackTopicKey: [InterviewQuestion]] = [:]
+    private var questionsByTrackCategory: [TrackQuestionCategoryKey: [InterviewQuestion]] = [:]
+    private var topicsByTrack: [Track: [Topic]] = [:]
 
     func loadContent() {
         guard !isLoaded else { return }
@@ -17,6 +42,7 @@ final class ContentService {
                 self.lessons = bundle.lessons
                 self.exercises = bundle.exercises
                 self.interviewQuestions = bundle.interviewQuestions
+                rebuildIndexes()
                 self.isLoaded = true
             } catch {
                 print("Failed to load content: \(error)")
@@ -28,65 +54,50 @@ final class ContentService {
     }
 
     func lessons(for track: Track, topic: String? = nil) -> [Lesson] {
-        lessons.filter { lesson in
-            lesson.track == track &&
-            (topic == nil || lesson.topic == topic)
-        }.sorted { $0.orderIndex < $1.orderIndex }
+        if let topic {
+            return lessonsByTrackTopic[TrackTopicKey(track: track, topic: topic)] ?? []
+        }
+        return lessonsByTrack[track] ?? []
     }
 
     func exercises(for track: Track, topic: String? = nil, type: ExerciseType? = nil) -> [Exercise] {
-        exercises.filter { exercise in
-            exercise.track == track &&
-            (topic == nil || exercise.topic == topic) &&
-            (type == nil || exercise.type == type)
-        }.sorted { $0.orderIndex < $1.orderIndex }
-    }
-
-    func interviewQuestions(for track: Track, topic: String? = nil, category: InterviewQuestionCategory? = nil) -> [InterviewQuestion] {
-        interviewQuestions.filter { question in
-            question.track == track &&
-            (topic == nil || question.topic == topic) &&
-            (category == nil || question.category == category)
-        }.sorted { $0.orderIndex < $1.orderIndex }
-    }
-
-    func topics(for track: Track) -> [Topic] {
-        let trackLessons = lessons.filter { $0.track == track }
-        let trackExercises = exercises.filter { $0.track == track }
-        let trackQuestions = interviewQuestions.filter { $0.track == track }
-
-        let topicNames = Array(Set(trackLessons.map(\.topic) + trackExercises.map(\.topic) + trackQuestions.map(\.topic)))
-            .sorted { lhs, rhs in
-                compareTopics(
-                    lhsTopic: lhs,
-                    lhsTrack: track,
-                    rhsTopic: rhs,
-                    rhsTrack: track,
-                    selectedTrack: track
-                )
-            }
-
-        return topicNames.map { topicName in
-            Topic(
-                id: "\(track.rawValue)_\(topicName)",
-                name: displayName(for: topicName),
-                icon: iconForTopic(topicName),
-                track: track,
-                lessonCount: trackLessons.filter { $0.topic == topicName }.count,
-                exerciseCount: trackExercises.filter { $0.topic == topicName }.count,
-                questionCount: trackQuestions.filter { $0.topic == topicName }.count
-            )
+        switch (topic, type) {
+        case let (.some(topic), .some(type)):
+            return (exercisesByTrackTopic[TrackTopicKey(track: track, topic: topic)] ?? [])
+                .filter { $0.type == type }
+        case let (.some(topic), .none):
+            return exercisesByTrackTopic[TrackTopicKey(track: track, topic: topic)] ?? []
+        case let (.none, .some(type)):
+            return exercisesByTrackType[TrackExerciseTypeKey(track: track, type: type)] ?? []
+        case (.none, .none):
+            return exercisesByTrack[track] ?? []
         }
     }
 
+    func interviewQuestions(for track: Track, topic: String? = nil, category: InterviewQuestionCategory? = nil) -> [InterviewQuestion] {
+        switch (topic, category) {
+        case let (.some(topic), .some(category)):
+            return (questionsByTrackTopic[TrackTopicKey(track: track, topic: topic)] ?? [])
+                .filter { $0.category == category }
+        case let (.some(topic), .none):
+            return questionsByTrackTopic[TrackTopicKey(track: track, topic: topic)] ?? []
+        case let (.none, .some(category)):
+            return questionsByTrackCategory[TrackQuestionCategoryKey(track: track, category: category)] ?? []
+        case (.none, .none):
+            return questionsByTrack[track] ?? []
+        }
+    }
+
+    func topics(for track: Track) -> [Topic] {
+        topicsByTrack[track] ?? []
+    }
+
     func randomExercise(for track: Track) -> Exercise? {
-        let trackExercises = exercises.filter { $0.track == track }
-        return trackExercises.randomElement()
+        exercisesByTrack[track]?.randomElement()
     }
 
     func randomQuestion(for track: Track) -> InterviewQuestion? {
-        let trackQuestions = interviewQuestions.filter { $0.track == track }
-        return trackQuestions.randomElement()
+        questionsByTrack[track]?.randomElement()
     }
 
     func compareTopics(
@@ -172,7 +183,78 @@ final class ContentService {
         self.lessons = Self.sampleLessons
         self.exercises = Self.sampleExercises
         self.interviewQuestions = Self.sampleInterviewQuestions
+        rebuildIndexes()
         self.isLoaded = true
+    }
+
+    private func rebuildIndexes() {
+        lessonsByTrack = Dictionary(grouping: lessons, by: \.track)
+            .mapValues(Self.sortedByOrderIndex)
+        lessonsByTrackTopic = Dictionary(grouping: lessons) { lesson in
+            TrackTopicKey(track: lesson.track, topic: lesson.topic)
+        }
+        .mapValues(Self.sortedByOrderIndex)
+
+        exercisesByTrack = Dictionary(grouping: exercises, by: \.track)
+            .mapValues(Self.sortedByOrderIndex)
+        exercisesByTrackTopic = Dictionary(grouping: exercises) { exercise in
+            TrackTopicKey(track: exercise.track, topic: exercise.topic)
+        }
+        .mapValues(Self.sortedByOrderIndex)
+        exercisesByTrackType = Dictionary(grouping: exercises) { exercise in
+            TrackExerciseTypeKey(track: exercise.track, type: exercise.type)
+        }
+        .mapValues(Self.sortedByOrderIndex)
+
+        questionsByTrack = Dictionary(grouping: interviewQuestions, by: \.track)
+            .mapValues(Self.sortedByOrderIndex)
+        questionsByTrackTopic = Dictionary(grouping: interviewQuestions) { question in
+            TrackTopicKey(track: question.track, topic: question.topic)
+        }
+        .mapValues(Self.sortedByOrderIndex)
+        questionsByTrackCategory = Dictionary(grouping: interviewQuestions) { question in
+            TrackQuestionCategoryKey(track: question.track, category: question.category)
+        }
+        .mapValues(Self.sortedByOrderIndex)
+
+        topicsByTrack = Dictionary(uniqueKeysWithValues: Track.allCases.map { track in
+            (track, buildTopics(for: track))
+        })
+    }
+
+    private func buildTopics(for track: Track) -> [Topic] {
+        let trackLessons = lessonsByTrack[track] ?? []
+        let trackExercises = exercisesByTrack[track] ?? []
+        let trackQuestions = questionsByTrack[track] ?? []
+
+        let lessonCounts = Dictionary(grouping: trackLessons, by: \.topic).mapValues(\.count)
+        let exerciseCounts = Dictionary(grouping: trackExercises, by: \.topic).mapValues(\.count)
+        let questionCounts = Dictionary(grouping: trackQuestions, by: \.topic).mapValues(\.count)
+
+        let topicNames = Array(Set(lessonCounts.keys)
+            .union(exerciseCounts.keys)
+            .union(questionCounts.keys))
+            .sorted { lhs, rhs in
+                compareTopics(
+                    lhsTopic: lhs,
+                    lhsTrack: track,
+                    rhsTopic: rhs,
+                    rhsTrack: track,
+                    selectedTrack: track
+                )
+            }
+
+        return topicNames.map { topicName in
+            Topic(
+                id: "\(track.rawValue)_\(topicName)",
+                name: displayName(for: topicName),
+                icon: iconForTopic(topicName),
+                track: track,
+                lessonCount: lessonCounts[topicName] ?? 0,
+                exerciseCount: exerciseCounts[topicName] ?? 0,
+                questionCount: questionCounts[topicName] ?? 0
+            )
+        }
     }
 
     private func displayName(for topic: String) -> String {
@@ -196,6 +278,18 @@ final class ContentService {
 
     private static func priorityMap(for topics: [String]) -> [String: Int] {
         Dictionary(uniqueKeysWithValues: topics.enumerated().map { ($0.element, $0.offset) })
+    }
+
+    private static func sortedByOrderIndex(_ items: [Lesson]) -> [Lesson] {
+        items.sorted { $0.orderIndex < $1.orderIndex }
+    }
+
+    private static func sortedByOrderIndex(_ items: [Exercise]) -> [Exercise] {
+        items.sorted { $0.orderIndex < $1.orderIndex }
+    }
+
+    private static func sortedByOrderIndex(_ items: [InterviewQuestion]) -> [InterviewQuestion] {
+        items.sorted { $0.orderIndex < $1.orderIndex }
     }
 
     private static let unknownTopicRank = 10_000

@@ -4,6 +4,10 @@ import SwiftData
 @Observable
 final class ProgressService {
     private var modelContext: ModelContext
+    private var completedLessonIDs: Set<String> = []
+    private var completedExerciseIDs: Set<String> = []
+    private var bookmarkIDs: Set<String> = []
+    private var cachedBookmarks: [Bookmark] = []
 
     var totalXP: Int = 0
     var currentStreak: Int = 0
@@ -52,6 +56,7 @@ final class ProgressService {
             )
             let lessonResults = try modelContext.fetch(lessonDescriptor)
             completedLessons = lessonResults.count
+            completedLessonIDs = Set(lessonResults.map(\.lessonId))
 
             let exerciseDescriptor = FetchDescriptor<ExerciseProgress>(
                 predicate: #Predicate { $0.completed }
@@ -59,6 +64,7 @@ final class ProgressService {
             let exerciseResults = try modelContext.fetch(exerciseDescriptor)
             completedExercises = exerciseResults.count
             correctExercises = exerciseResults.filter(\.correct).count
+            completedExerciseIDs = Set(exerciseResults.map(\.exerciseId))
 
             let streakDescriptor = FetchDescriptor<DailyStreak>(
                 sortBy: [SortDescriptor(\.date, order: .reverse)]
@@ -67,6 +73,7 @@ final class ProgressService {
             currentStreak = calculateStreak(from: streaks)
 
             totalXP = streaks.reduce(0) { $0 + $1.xpEarned }
+            refreshBookmarks()
         } catch {
             print("Failed to fetch progress: \(error)")
         }
@@ -139,17 +146,11 @@ final class ProgressService {
     }
 
     func isLessonCompleted(_ lessonId: String) -> Bool {
-        let descriptor = FetchDescriptor<UserProgress>(
-            predicate: #Predicate<UserProgress> { $0.lessonId == lessonId && $0.completed }
-        )
-        return (try? modelContext.fetchCount(descriptor)) ?? 0 > 0
+        completedLessonIDs.contains(lessonId)
     }
 
     func isExerciseCompleted(_ exerciseId: String) -> Bool {
-        let descriptor = FetchDescriptor<ExerciseProgress>(
-            predicate: #Predicate<ExerciseProgress> { $0.exerciseId == exerciseId && $0.completed }
-        )
-        return (try? modelContext.fetchCount(descriptor)) ?? 0 > 0
+        completedExerciseIDs.contains(exerciseId)
     }
 
     func topicProgress(topic: String, track: Track, contentService: ContentService) -> Double {
@@ -209,6 +210,15 @@ final class ProgressService {
         return streak
     }
 
+    private func refreshBookmarks() {
+        let descriptor = FetchDescriptor<Bookmark>(
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+        )
+        let bookmarks = (try? modelContext.fetch(descriptor)) ?? []
+        cachedBookmarks = bookmarks
+        bookmarkIDs = Set(bookmarks.map(\.itemId))
+    }
+
     // MARK: - Bookmarks
 
     func toggleBookmark(itemId: String, itemType: String, title: String) {
@@ -225,23 +235,18 @@ final class ProgressService {
                 modelContext.insert(bookmark)
             }
             try modelContext.save()
+            refreshBookmarks()
         } catch {
             print("Failed to toggle bookmark: \(error)")
         }
     }
 
     func isBookmarked(_ itemId: String) -> Bool {
-        let descriptor = FetchDescriptor<Bookmark>(
-            predicate: #Predicate<Bookmark> { $0.itemId == itemId }
-        )
-        return (try? modelContext.fetchCount(descriptor)) ?? 0 > 0
+        bookmarkIDs.contains(itemId)
     }
 
     func allBookmarks() -> [Bookmark] {
-        let descriptor = FetchDescriptor<Bookmark>(
-            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
-        )
-        return (try? modelContext.fetch(descriptor)) ?? []
+        cachedBookmarks
     }
 
     func resetAllProgress() {

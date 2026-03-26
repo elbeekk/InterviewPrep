@@ -1,10 +1,17 @@
 import SwiftUI
 
 struct LessonDetailView: View {
-    let lesson: Lesson
+    @State private var lesson: Lesson
+    var scrollToActiveSection: Bool = false
 
+    @Environment(ContentService.self) private var contentService
+    @Environment(LessonAudioPlayerService.self) private var lessonAudioPlayer
     @Environment(ProgressService.self) private var progressService
-    @State private var showQuiz = false
+
+    init(lesson: Lesson, scrollToActiveSection: Bool = false) {
+        _lesson = State(initialValue: lesson)
+        self.scrollToActiveSection = scrollToActiveSection
+    }
 
     private var isCompleted: Bool {
         progressService.isLessonCompleted(lesson.id)
@@ -14,20 +21,53 @@ struct LessonDetailView: View {
         progressService.isBookmarked(lesson.id)
     }
 
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                headerSection
-                contentSections
-                codeExamplesSection
-                keyTakeawaysSection
-                quizSection
-            }
-            .padding(.horizontal, AppTheme.padding)
-            .padding(.top, 8)
-            .padding(.bottom, 40)
+    private var lessonQueue: [Lesson] {
+        let queue = contentService.lessons(for: lesson.track, topic: lesson.topic)
+        return queue.isEmpty ? [lesson] : queue
+    }
+
+    private var queuePositionLabel: String? {
+        guard
+            lessonQueue.count > 1,
+            let index = lessonQueue.firstIndex(where: { $0.id == lesson.id })
+        else {
+            return nil
         }
-        .background(AppTheme.groupedBackground)
+
+        return "\(index + 1) of \(lessonQueue.count)"
+    }
+
+    var body: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    headerSection
+                    audioPlaybackSection
+                    contentSections
+                    codeExamplesSection
+                    keyTakeawaysSection
+                    quizSection
+                }
+                .padding(.horizontal, AppTheme.padding)
+                .padding(.top, 8)
+                .padding(.bottom, 40)
+            }
+            .onAppear {
+                if scrollToActiveSection, let sectionId = lessonAudioPlayer.activeSectionId {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        withAnimation {
+                            proxy.scrollTo(sectionId, anchor: .top)
+                        }
+                    }
+                }
+            }
+            .onChange(of: lessonAudioPlayer.activeSectionId) { _, newId in
+                guard let newId, scrollToActiveSection else { return }
+                withAnimation {
+                    proxy.scrollTo(newId, anchor: .top)
+                }
+            }
+        }
         .navigationTitle(lesson.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -44,14 +84,49 @@ struct LessonDetailView: View {
                 }
             }
         }
-        .sheet(isPresented: $showQuiz) {
-            NavigationStack {
-                LessonQuizView(
-                    lesson: lesson,
-                    questions: lesson.miniQuiz
-                )
+        .onChange(of: lessonAudioPlayer.currentLesson?.id) {
+            guard let currentLesson = lessonAudioPlayer.currentLesson else { return }
+            if lessonQueue.contains(where: { $0.id == currentLesson.id }) {
+                lesson = currentLesson
             }
         }
+    }
+
+    // MARK: - Audio Playback
+
+    private var audioPlaybackSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 8) {
+                Label("Lesson Audio", systemImage: "speaker.wave.2.fill")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+
+                Spacer()
+
+                if let queuePositionLabel {
+                    Text(queuePositionLabel)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Text(audioDescription)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Button {
+                lessonAudioPlayer.togglePlayback(for: lesson, queue: lessonQueue)
+            } label: {
+                Label(playbackButtonTitle, systemImage: playbackButtonIcon)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+        }
+        .padding(AppTheme.padding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glassEffect(.regular, in: .rect(cornerRadius: AppTheme.cornerRadius))
     }
 
     // MARK: - Header
@@ -99,8 +174,7 @@ struct LessonDetailView: View {
         }
         .padding(AppTheme.padding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppTheme.primaryBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadius))
+        .glassEffect(.regular, in: .rect(cornerRadius: AppTheme.cornerRadius))
     }
 
     // MARK: - Content Sections
@@ -108,11 +182,15 @@ struct LessonDetailView: View {
     private var contentSections: some View {
         VStack(alignment: .leading, spacing: AppTheme.padding) {
             ForEach(lesson.content) { section in
+                let isActive = lessonAudioPlayer.isCurrentLesson(lesson)
+                    && lessonAudioPlayer.isPlaying
+                    && lessonAudioPlayer.activeSectionId == section.id
+
                 VStack(alignment: .leading, spacing: 10) {
                     Text(section.heading)
                         .font(.title3)
                         .fontWeight(.semibold)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(isActive ? AppTheme.accent : .primary)
 
                     Text(section.body)
                         .font(.body)
@@ -124,6 +202,13 @@ struct LessonDetailView: View {
                         CodeBlockView(code: codeSnippet, language: codeLanguage)
                     }
                 }
+                .padding(isActive ? 12 : 0)
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(isActive ? AppTheme.accent.opacity(0.08) : .clear)
+                )
+                .animation(.easeInOut(duration: 0.3), value: isActive)
+                .id(section.id)
 
                 if section.id != lesson.content.last?.id {
                     Divider()
@@ -133,8 +218,7 @@ struct LessonDetailView: View {
         }
         .padding(AppTheme.padding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppTheme.primaryBackground)
-        .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadius))
+        .glassEffect(.regular, in: .rect(cornerRadius: AppTheme.cornerRadius))
     }
 
     // MARK: - Code Examples
@@ -171,8 +255,7 @@ struct LessonDetailView: View {
             }
             .padding(AppTheme.padding)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(AppTheme.primaryBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadius))
+            .glassEffect(.regular, in: .rect(cornerRadius: AppTheme.cornerRadius))
         }
     }
 
@@ -202,8 +285,7 @@ struct LessonDetailView: View {
             }
             .padding(AppTheme.padding)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(AppTheme.primaryBackground)
-            .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadius))
+            .glassEffect(.regular, in: .rect(cornerRadius: AppTheme.cornerRadius))
         }
     }
 
@@ -212,8 +294,11 @@ struct LessonDetailView: View {
     @ViewBuilder
     private var quizSection: some View {
         if !lesson.miniQuiz.isEmpty {
-            Button {
-                showQuiz = true
+            NavigationLink {
+                LessonQuizView(
+                    lesson: lesson,
+                    questions: lesson.miniQuiz
+                )
             } label: {
                 HStack {
                     Text("Take Quiz")
@@ -226,8 +311,12 @@ struct LessonDetailView: View {
                         .font(.subheadline)
                 }
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
+            .buttonStyle(.plain)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 16)
+            .frame(maxWidth: .infinity)
+            .foregroundStyle(.white)
+            .glassEffect(.regular.tint(AppTheme.accent), in: .rect(cornerRadius: AppTheme.cornerRadius))
         }
     }
 
@@ -239,6 +328,30 @@ struct LessonDetailView: View {
         case .swift: "Swift"
         case .general: "Code"
         }
+    }
+
+    private var playbackButtonTitle: String {
+        if lessonAudioPlayer.isCurrentLesson(lesson) {
+            return lessonAudioPlayer.isPlaying ? "Pause Narration" : "Resume Narration"
+        }
+
+        return "Play Lesson Audio"
+    }
+
+    private var playbackButtonIcon: String {
+        if lessonAudioPlayer.isCurrentLesson(lesson) {
+            return lessonAudioPlayer.isPlaying ? "pause.fill" : "play.fill"
+        }
+
+        return "play.fill"
+    }
+
+    private var audioDescription: String {
+        if lessonQueue.count > 1 {
+            return "Text to speech keeps playing across the app, and previous or next controls move through the other lessons in this topic."
+        }
+
+        return "Text to speech keeps playing across the app and shows system media controls while this lesson is playing."
     }
 }
 
@@ -308,4 +421,6 @@ struct FlowLayout: Layout {
             )
         )
     }
+    .environment(ContentService())
+    .environment(LessonAudioPlayerService())
 }

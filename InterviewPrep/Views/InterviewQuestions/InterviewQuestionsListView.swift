@@ -233,7 +233,7 @@ private struct QuestionRow: View {
             HStack(spacing: AppTheme.spacing) {
                 Label(question.category.displayName, systemImage: question.category.icon)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(AppTheme.accent)
 
                 Text(question.difficulty.displayName)
                     .font(.caption)

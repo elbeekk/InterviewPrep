@@ -34,6 +34,12 @@ struct ExerciseView: View {
                     .lineLimit(1)
             }
         }
+        .onAppear {
+            StudySessionActivityManager.shared.startExercise(exercise)
+        }
+        .onDisappear {
+            StudySessionActivityManager.shared.endExercise(exercise)
+        }
     }
 
     // MARK: - Header
@@ -117,10 +123,7 @@ struct ExerciseView: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(AppTheme.padding)
-        .background(
-            RoundedRectangle(cornerRadius: AppTheme.cornerRadius)
-                .fill(AppTheme.secondaryBackground)
-        )
+        .glassEffect(.regular, in: .rect(cornerRadius: AppTheme.cornerRadius))
         .transition(.opacity)
     }
 
@@ -137,9 +140,8 @@ struct ExerciseView: View {
             }
             .frame(maxWidth: .infinity)
             .padding()
-            .background(AppTheme.accent)
             .foregroundStyle(.white)
-            .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadius))
+            .glassEffect(.regular.tint(AppTheme.accent), in: .rect(cornerRadius: AppTheme.cornerRadius))
         }
         .transition(.opacity)
     }
@@ -151,6 +153,7 @@ struct ExerciseView: View {
         isAnswered = true
 
         progressService.markExerciseCompleted(exercise.id, correct: correct, xp: exercise.xp)
+        StudySessionActivityManager.shared.updateExercise(exercise, isCorrect: correct)
 
         withAnimation(.easeInOut(duration: 0.25)) {
             showExplanation = true

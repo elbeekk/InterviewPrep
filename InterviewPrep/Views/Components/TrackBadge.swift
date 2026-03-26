@@ -10,8 +10,7 @@ struct TrackBadge: View {
             .foregroundStyle(.secondary)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .background(Color(.tertiarySystemFill))
-            .clipShape(Capsule())
+            .glassEffect(.regular, in: .capsule)
     }
 }
 

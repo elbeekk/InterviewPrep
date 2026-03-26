@@ -79,14 +79,11 @@ struct TrueFalseExerciseView: View {
         }
         .padding(24)
         .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: AppTheme.cornerRadius)
-                .fill(cardBackground)
-        )
         .overlay(
-            RoundedRectangle(cornerRadius: AppTheme.cornerRadius)
-                .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
+            RoundedRectangle(cornerRadius: AppTheme.cornerRadius, style: .continuous)
+                .fill(isAnswered ? cardBackground : .clear)
         )
+        .glassEffect(.regular, in: .rect(cornerRadius: AppTheme.cornerRadius))
         .rotationEffect(.degrees(cardRotation))
         .offset(x: dragOffset.width)
         .gesture(isSwipeMode && !isAnswered ? swipeGesture : nil)

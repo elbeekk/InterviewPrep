@@ -119,10 +119,7 @@ struct MatchPairsExerciseView: View {
             .frame(maxWidth: .infinity)
         }
         .padding()
-        .background(
-            RoundedRectangle(cornerRadius: AppTheme.cornerRadius)
-                .fill(AppTheme.secondaryBackground)
-        )
+        .glassEffect(.regular, in: .rect(cornerRadius: AppTheme.cornerRadius))
     }
 
     // MARK: - Check Button
@@ -138,9 +135,8 @@ struct MatchPairsExerciseView: View {
             }
             .frame(maxWidth: .infinity)
             .padding()
-            .background(AppTheme.accent)
             .foregroundStyle(.white)
-            .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadius))
+            .glassEffect(.regular.tint(AppTheme.accent), in: .rect(cornerRadius: AppTheme.cornerRadius))
         }
         .transition(.move(edge: .bottom).combined(with: .opacity))
     }

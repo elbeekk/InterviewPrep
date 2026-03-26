@@ -40,6 +40,39 @@ enum Track: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+enum ReminderSoundOption: String, CaseIterable, Identifiable, Codable {
+    case off
+    case system
+    case bloom
+    case pulse
+    case glass
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .off: "Off"
+        case .system: "Default"
+        case .bloom: "Bloom"
+        case .pulse: "Pulse"
+        case .glass: "Glass"
+        }
+    }
+
+    var bundledFileName: String? {
+        switch self {
+        case .off, .system:
+            nil
+        case .bloom:
+            "reminder-bloom.wav"
+        case .pulse:
+            "reminder-pulse.wav"
+        case .glass:
+            "reminder-glass.wav"
+        }
+    }
+}
+
 enum Difficulty: String, Codable, CaseIterable, Identifiable {
     case easy
     case medium

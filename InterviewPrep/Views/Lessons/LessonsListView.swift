@@ -7,7 +7,7 @@ struct LessonsListView: View {
 
     @State private var searchText = ""
     @State private var expandedTopics: Set<String> = []
-    @State private var navigationPath = NavigationPath()
+    @Binding var navigationPath: NavigationPath
 
     private var tracks: [Track] {
         if selectedTrack == .general {
@@ -74,6 +74,9 @@ struct LessonsListView: View {
             .navigationDestination(for: Lesson.self) { lesson in
                 LessonDetailView(lesson: lesson)
             }
+            .navigationDestination(for: LessonScrollTarget.self) { target in
+                LessonDetailView(lesson: target.lesson, scrollToActiveSection: true)
+            }
         }
     }
 
@@ -107,7 +110,7 @@ struct LessonsListView: View {
                 HStack(spacing: AppTheme.spacing) {
                     Image(systemName: topic.icon)
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(AppTheme.accent)
                         .frame(width: 20)
 
                     Text(topic.name)
@@ -190,7 +193,11 @@ extension Lesson: Hashable {
     }
 }
 
+struct LessonScrollTarget: Hashable {
+    let lesson: Lesson
+}
+
 #Preview {
-    LessonsListView()
+    LessonsListView(navigationPath: .constant(NavigationPath()))
         .environment(ContentService())
 }

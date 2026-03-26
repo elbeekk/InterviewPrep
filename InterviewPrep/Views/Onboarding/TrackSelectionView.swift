@@ -32,6 +32,7 @@ struct TrackSelectionView: View {
                         HStack(spacing: 14) {
                             Image(systemName: track.icon)
                                 .font(.title3)
+                                .foregroundStyle(AppTheme.accent)
                                 .frame(width: 28)
 
                             VStack(alignment: .leading, spacing: 2) {
@@ -49,8 +50,7 @@ struct TrackSelectionView: View {
                                 .foregroundStyle(.tertiary)
                         }
                         .padding(16)
-                        .background(Color(.secondarySystemBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: AppTheme.cornerRadius))
+                        .glassEffect(.regular, in: .rect(cornerRadius: AppTheme.cornerRadius))
                     }
                     .buttonStyle(.plain)
                 }

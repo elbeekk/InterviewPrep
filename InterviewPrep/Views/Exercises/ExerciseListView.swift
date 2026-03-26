@@ -183,7 +183,7 @@ private struct ExerciseRowView: View {
                 HStack(spacing: 8) {
                     Text(exerciseTypeLabel(exercise.type))
                         .font(.caption)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(AppTheme.accent)
 
                     Text(exercise.difficulty.displayName)
                         .font(.caption)
