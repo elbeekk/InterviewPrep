@@ -51,42 +51,56 @@ struct FillBlankExerciseView: View {
     // MARK: - Code Template View
 
     private var codeTemplateView: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 4) {
             let lines = codeTemplate.components(separatedBy: "\n")
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 2) {
-                    ForEach(Array(lines.enumerated()), id: \.offset) { lineIndex, line in
-                        buildCodeLine(line, lineNumber: lineIndex + 1)
-                    }
-                }
-                .padding(AppTheme.padding)
+            ForEach(Array(lines.enumerated()), id: \.offset) { lineIndex, line in
+                buildCodeLine(line, lineNumber: lineIndex + 1)
             }
         }
+        .padding(AppTheme.padding)
         .glassEffect(.regular, in: .rect(cornerRadius: AppTheme.smallCornerRadius))
     }
 
     @ViewBuilder
     private func buildCodeLine(_ line: String, lineNumber: Int) -> some View {
-        HStack(alignment: .center, spacing: 0) {
-            Text("\(lineNumber)")
-                .font(AppTheme.codeFontSmall)
-                .foregroundStyle(.tertiary)
-                .frame(minWidth: 24, alignment: .trailing)
-                .padding(.trailing, 8)
+        let parts = line.components(separatedBy: "___")
+        let hasBlanks = parts.count > 1
 
-            let parts = line.components(separatedBy: "___")
-            ForEach(Array(parts.enumerated()), id: \.offset) { partIndex, part in
-                Text(part)
-                    .font(AppTheme.codeFont)
-                    .foregroundStyle(.primary)
+        if hasBlanks {
+            // Use wrapping FlowLayout for lines with blanks so they don't overflow
+            FlowLayout(spacing: 4) {
+                Text("\(lineNumber) ")
+                    .font(AppTheme.codeFontSmall)
+                    .foregroundStyle(.tertiary)
 
-                if partIndex < parts.count - 1 {
-                    let blankIndex = blankIndexFor(line: line, blankPosition: partIndex)
-                    if let blankIndex, blankIndex < filledBlanks.count {
-                        blankSlot(at: blankIndex)
+                ForEach(Array(parts.enumerated()), id: \.offset) { partIndex, part in
+                    if !part.isEmpty {
+                        Text(part)
+                            .font(AppTheme.codeFont)
+                            .foregroundStyle(.primary)
+                    }
+
+                    if partIndex < parts.count - 1 {
+                        let blankIndex = blankIndexFor(line: line, blankPosition: partIndex)
+                        if let blankIndex, blankIndex < filledBlanks.count {
+                            blankSlot(at: blankIndex)
+                        }
                     }
                 }
+            }
+        } else {
+            // Plain code line — single HStack, no overflow risk
+            HStack(alignment: .center, spacing: 0) {
+                Text("\(lineNumber)")
+                    .font(AppTheme.codeFontSmall)
+                    .foregroundStyle(.tertiary)
+                    .frame(minWidth: 24, alignment: .trailing)
+                    .padding(.trailing, 8)
+
+                Text(line)
+                    .font(AppTheme.codeFont)
+                    .foregroundStyle(.primary)
             }
         }
     }
