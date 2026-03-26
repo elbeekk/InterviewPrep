@@ -27,7 +27,31 @@ struct InterviewOSApp: App {
     @State private var lessonAudioPlayer = LessonAudioPlayerService()
 
     init() {
+        Self.resetOnboardingIfFreshInstall()
         ReminderNotificationService.configure()
+    }
+
+    /// UserDefaults can survive app deletion via iCloud key-value sync.
+    /// Detect a truly fresh install by checking for a local-only sentinel file
+    /// inside the app container (which IS deleted with the app).
+    private static func resetOnboardingIfFreshInstall() {
+        let sentinelURL = FileManager.default
+            .urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+            .appendingPathComponent("onboarding_sentinel")
+
+        if FileManager.default.fileExists(atPath: sentinelURL.path) {
+            return // Not a fresh install
+        }
+
+        // Fresh install — clear any stale onboarding flag from iCloud-synced defaults
+        UserDefaults.standard.removeObject(forKey: "hasCompletedOnboarding")
+
+        // Create the sentinel so future launches skip this reset
+        try? FileManager.default.createDirectory(
+            at: sentinelURL.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        FileManager.default.createFile(atPath: sentinelURL.path, contents: nil)
     }
 
     var body: some Scene {
