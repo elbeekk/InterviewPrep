@@ -168,6 +168,7 @@ struct InterviewQuestionDetailView: View {
                     withAnimation(.easeInOut(duration: 0.3)) {
                         showAnswer = true
                     }
+                    ReviewRequestService.recordAction()
                 } label: {
                     HStack {
                         Image(systemName: "eye")

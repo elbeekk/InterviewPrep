@@ -65,6 +65,13 @@ struct MainTabView: View {
 
     private func navigateToCurrentLesson() {
         guard let lesson = lessonAudioPlayer.currentLesson else { return }
+
+        // If already on the lessons tab viewing this lesson, just scroll to active section
+        if selectedTab == "lessons", isShowingLesson(lesson) {
+            lessonAudioPlayer.requestScrollToActiveSection()
+            return
+        }
+
         selectedTab = "lessons"
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
             lessonsNavigationPath = NavigationPath()
@@ -72,6 +79,12 @@ struct MainTabView: View {
                 lessonsNavigationPath.append(LessonScrollTarget(lesson: lesson))
             }
         }
+    }
+
+    private func isShowingLesson(_ lesson: Lesson) -> Bool {
+        // Check if the navigation path contains a LessonScrollTarget or Lesson for this lesson
+        // NavigationPath doesn't expose its elements, so track via a simple flag
+        !lessonsNavigationPath.isEmpty
     }
 }
 

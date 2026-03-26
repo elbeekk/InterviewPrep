@@ -67,6 +67,13 @@ struct LessonDetailView: View {
                     proxy.scrollTo(newId, anchor: .top)
                 }
             }
+            .onChange(of: lessonAudioPlayer.scrollToSectionTrigger) {
+                guard lessonAudioPlayer.isCurrentLesson(lesson),
+                      let sectionId = lessonAudioPlayer.activeSectionId else { return }
+                withAnimation {
+                    proxy.scrollTo(sectionId, anchor: .top)
+                }
+            }
         }
         .navigationTitle(lesson.title)
         .navigationBarTitleDisplayMode(.inline)

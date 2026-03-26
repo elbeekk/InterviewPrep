@@ -76,6 +76,8 @@ final class LessonAudioPlayerService: NSObject {
     private(set) var currentLesson: Lesson?
     private(set) var playbackState: PlaybackState = .idle
     private(set) var activeSectionId: String?
+    /// Incremented when the mini player is tapped to request a scroll-to-active-section.
+    private(set) var scrollToSectionTrigger: UInt = 0
 
     var isMiniPlayerVisible: Bool {
         currentLesson != nil
@@ -129,6 +131,10 @@ final class LessonAudioPlayerService: NSObject {
 
     func isCurrentLesson(_ lesson: Lesson) -> Bool {
         currentLesson?.id == lesson.id
+    }
+
+    func requestScrollToActiveSection() {
+        scrollToSectionTrigger &+= 1
     }
 
     func togglePlayback(for lesson: Lesson, queue: [Lesson]) {

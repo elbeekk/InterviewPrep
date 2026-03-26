@@ -154,6 +154,7 @@ struct ExerciseView: View {
 
         progressService.markExerciseCompleted(exercise.id, correct: correct, xp: exercise.xp)
         StudySessionActivityManager.shared.updateExercise(exercise, isCorrect: correct)
+        ReviewRequestService.recordAction()
 
         withAnimation(.easeInOut(duration: 0.25)) {
             showExplanation = true

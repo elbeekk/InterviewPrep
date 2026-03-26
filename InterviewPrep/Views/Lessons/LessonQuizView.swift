@@ -200,6 +200,7 @@ struct LessonQuizView: View {
                     didCompleteLesson = true
                     StudySessionActivityManager.shared.completeLesson(lesson, score: score)
                     progressService.markLessonCompleted(lesson.id, quizScore: score)
+                    ReviewRequestService.recordAction()
                     dismiss()
                 } label: {
                     Text("Complete Lesson")
