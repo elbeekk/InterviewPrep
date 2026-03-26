@@ -86,10 +86,12 @@ struct HomeView: View {
         .onAppear {
             contentService.loadContent()
             progressService.refresh()
-            dailyChallenge = randomDailyChallenge()
+            refreshDailyChallengeIfNeeded()
         }
         .onChange(of: selectedTrack) {
-            dailyChallenge = randomDailyChallenge()
+            // Track changed — force pick a new challenge
+            dailyChallenge = nil
+            refreshDailyChallengeIfNeeded()
         }
     }
 
@@ -243,8 +245,20 @@ struct HomeView: View {
         return lessons.first { !progressService.isLessonCompleted($0.id) } ?? lessons.first
     }
 
+    private func refreshDailyChallengeIfNeeded() {
+        // Only pick a new challenge if there's none, or the current one was answered correctly
+        if let current = dailyChallenge {
+            if progressService.isExerciseCompleted(current.id) {
+                dailyChallenge = randomDailyChallenge()
+            }
+            return
+        }
+        dailyChallenge = randomDailyChallenge()
+    }
+
     private func randomDailyChallenge() -> Exercise? {
         let exercises = availableTracks.flatMap { contentService.exercises(for: $0) }
+            .filter { !progressService.isExerciseCompleted($0.id) }
         return exercises.randomElement()
     }
 }
